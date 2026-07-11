@@ -2,10 +2,15 @@ import discord
 from discord import app_commands
 import requests
 import random
+import os
 from typing import Optional
 
-# ================== CONFIG ==================
-TMDB_API_KEY = "YOUR_TMDB_READ_ACCESS_TOKEN_HERE"
+# ================== CONFIG (Using Environment Variables) ==================
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
+if not TMDB_API_KEY or not DISCORD_TOKEN:
+    raise ValueError("Missing TMDB_API_KEY or DISCORD_TOKEN environment variables!")
 # ===========================================
 
 intents = discord.Intents.default()
@@ -30,7 +35,6 @@ async def help_command(interaction: discord.Interaction):
         description="Use any command with `/`",
         color=0xe50914
     )
-
     embed.add_field(name="🎥 Core Commands", value="""
 • `/watch` - Watch movie or TV episode
 • `/search` - Search for content
@@ -63,7 +67,7 @@ async def help_command(interaction: discord.Interaction):
     embed.set_footer(text="Tip: Start with /watch movie Inception")
     await interaction.response.send_message(embed=embed)
 
-# ================== MAIN COMMANDS ==================
+# ================== WATCH COMMAND ==================
 @tree.command(name="watch", description="Watch on Vidking Player")
 @app_commands.describe(media_type="movie or tv", query="Title or TMDB ID", season="Season (TV)", episode="Episode (TV)")
 async def watch(interaction: discord.Interaction, media_type: str, query: str, season: Optional[int] = 1, episode: Optional[int] = 1):
@@ -91,12 +95,9 @@ async def watch(interaction: discord.Interaction, media_type: str, query: str, s
     embed.add_field(name="▶️ Watch Now", value=f"[Open Vidking Player]({url})", inline=False)
     await interaction.followup.send(embed=embed)
 
-# Add more commands as needed (random, popular, trending, etc.)
-# For brevity, the rest are similar. You can expand them.
-
 @bot.event
 async def on_ready():
     await tree.sync()
     print(f"✅ Vidking Bot is online with slash commands! - {bot.user}")
 
-bot.run("YOUR_DISCORD_BOT_TOKEN_HERE")
+bot.run(DISCORD_TOKEN)
